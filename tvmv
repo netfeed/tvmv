@@ -224,7 +224,11 @@ def move(old, new, no_action=False):
 
     debug('... moving file')
     dirs = os.path.dirname(new)
-    os.makedirs(dirs)
+    try:
+        os.makedirs(dirs)
+    except OSError:
+        # would this contain permission errors too?
+        debug('... directory already exists')
 
     shutil.move(old, new)
 
