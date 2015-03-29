@@ -260,6 +260,10 @@ def handle_file(args, f):
 
     debug("... new location: " + new_location)
 
+    if os.path.isfile(new_location):
+        debug("... .. there's already a file at that location")
+        return
+
     move(f, new_location, args.no_action)
 
 def run(args):
