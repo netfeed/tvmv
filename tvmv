@@ -1,0 +1,303 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#  Copyright (c) 2015 Victor Bergöö
+#  
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#  
+#  The above copyright notice and this permission notice shall be included in
+#  all copies or substantial portions of the Software.
+#  
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+#  THE SOFTWARE.
+
+__version__ = '0.1'
+
+import mimetypes
+import os
+import os.path
+import re
+import shutil
+import socket
+import sys
+
+import xml.etree.ElementTree as ET
+
+from urllib import urlencode
+from urllib2 import urlopen, HTTPError
+
+SEASON_RE1 = re.compile("s(\d{2})e(\d{2})", re.IGNORECASE)
+SEASON_RE2 = re.compile("[\s\.-](\d{1,2})(\d{2})")
+SEASON_RE3 = re.compile("[\s\.-]?(\d{1,2})x(\d{2})")
+
+SEASON_PADDING_RE = re.compile("{season\.pad\((\d+)\)}")
+EPISODE_PADDING_RE = re.compile("{episode\.pad\((\d+)\)}")
+
+NAME_EQUALIZER_RE = re.compile("[^\w\s]")
+
+TVRAGE = {}
+
+VERBOSE = True
+
+class TvrageError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+def debug(message):
+    if VERBOSE:
+        print message
+
+class TvRage(object):
+    def __init__(self, name, showid):
+        self.name = name
+        self.showid = showid
+
+class Episode(object):
+    def __init__(self, season, episode, extension, title=None, year=None):
+        self.title = title
+        self.year = int(year) if year else None
+        self.extension = extension
+
+        self.season = self._fix_int(season)
+        self.episode = self._fix_int(episode)
+
+    def __eq__(self, that):
+        return self.title == that.title and self.episode_number() == that.episode_number() and \
+                self.year == that.year and self.extension == that.extension
+
+    def __str__(self):
+        return "Episode<%s - %s - %s>" % (self.name, self.year, self.episode_number())
+
+    def episode_number(self):
+        return "s%02de%02d" % (int(self.season), int(self.episode))
+
+    def _fix_int(self, value):
+        if type(value) == type(''):
+            if value.startswith('0'):
+                value = value.replace('0', '')
+            self.value = int(value)
+        return int(value)
+
+
+class Show(object):
+    def __init__(self, name, year=None, episode=None):
+        self.name = name
+        self.year = int(year) if year else None
+        self.episode = episode
+
+    def __eq__(self, that):
+        return self.name == that.name and self.year == that.year and self.episode == that.episode
+
+    def __str__(self):
+        return "Show<%s - %s - %s>" % (self.name, self.year, self.episode)
+
+    def clean_name(self):
+        name = self.name
+        for item in ["'"]:
+            name = name.replace(item, '')
+        return name
+
+    def fetch_episode_meta(self):
+        showid = self._fetch_show()
+        url = "http://services.tvrage.com/feeds/episodeinfo.php?" + urlencode(dict(sid = showid, ep = self.format("{season}x{episode}", True)))
+        xml = self._fetch_xml(url)
+
+        titles = xml.findall(".//episode/title")
+        if titles:
+            self.episode.title = titles[0].text
+
+    def _fetch_show(self):
+        if self.name in TVRAGE:
+            return TVRAGE[self.name].showid
+
+        url = "http://services.tvrage.com/feeds/search.php?" + urlencode(dict(show = self.name.lower()))
+        xml = self._fetch_xml(url)
+
+        shows = xml.findall('show')
+        for show in shows:
+            name = show.findall(".//name")[0].text
+            check = re.sub(NAME_EQUALIZER_RE, "", name)
+            if self.clean_name().lower() == check.lower():
+                TVRAGE[self.name] = TvRage(name, show.findall(".//showid")[0].text)
+                return TVRAGE[self.name].showid
+
+        return None
+
+    def _fetch_xml(self, url):
+        try:
+            req = urlopen(url)
+            return ET.fromstring(req.read())
+        except HTTPError as e:
+            raise TvrageError(e)
+        except socket.error as e:
+            raise TvrageError(e)
+
+        return None
+
+
+    def format(self, form, inner=False):
+        if "{episode_title}" in form and not inner:
+            self.fetch_episode_meta()
+
+        name = self.name
+        if name in TVRAGE:
+            name = TVRAGE[name].name
+
+        form = form.replace("{show}", name)
+
+        if self.episode:
+            form = self._format_from_re(form, "{season}", SEASON_PADDING_RE, self.episode.season)
+            form = self._format_from_re(form, "{episode}", EPISODE_PADDING_RE, self.episode.episode)
+
+            if "{episode_title}" in form:
+                if not self.episode.title:
+                    return None
+
+                form = form.replace("{episode_title}", self.episode.title)
+
+        return form
+
+    def _format_from_re(self, form, check, regex, field):
+        result = re.search(regex, form)
+        if result:
+            replace = "%0" + result.group(1) + "d"
+            form = re.sub(regex, replace % (field), form)
+        elif check[:-1] in form:
+            form = form.replace(check, str(field))
+
+        return form
+
+
+def parse_path(path):
+    d = os.path.dirname(path)
+    d = os.path.basename(d)
+    f, ext = os.path.splitext(os.path.basename(path))
+
+    dir_season = parse_season(d)
+    file_season = parse_season(f)
+
+    dir_name = parse_name(d)
+    file_name = parse_name(f)
+
+    season = file_season if file_season else dir_season
+    name = file_name if file_name else dir_name
+
+    episode = Episode(season.group(1), season.group(2), ext)
+    show = Show(name, episode=episode)
+    return show
+
+def parse_season(path):
+    for regex in [SEASON_RE1, SEASON_RE2, SEASON_RE3]:
+        result = re.search(regex, path)
+        if result:
+            return result
+
+    return None
+
+def parse_name(path):
+    for regex in [SEASON_RE1, SEASON_RE2, SEASON_RE3]:
+        items = re.split(regex, path)
+        if len(items) > 1 and len(items[0]) > 0:
+            name = items[0]
+            for item in ['-', '.', '_']:
+                name = name.replace(item, ' ')
+
+            return name.strip()
+
+    return None
+
+def move(old, new, no_action=False):
+    if no_action:
+        return
+
+    debug('... moving file')
+    dirs = os.path.dirname(new)
+    os.makedirs(dirs)
+
+    shutil.move(old, new)
+
+def handle_file(args, f):
+    if not os.path.isfile(f):
+        print "bapp"
+        return
+
+    mime = mimetypes.guess_type(f)
+    if not mime[0] or 'video' not in mime[0]:
+        return
+
+    if 'sample' in f.lower():
+        return
+
+    debug("File: " + f)
+
+    show = parse_path(f)
+
+    formated = show.format(args.format)
+    if not formated:
+        debug("... couldn't format properly, skipping")
+        return
+
+    _, ext = os.path.splitext(os.path.basename(f))
+
+    expanded = os.path.expanduser(args.destination)
+    new_location = os.path.join(expanded, formated + ext)
+
+    debug("... new location: " + new_location)
+
+    move(f, new_location, args.no_action)
+
+def run(args):
+    for dir in args.files:
+        files = set(find_files(dir))
+        for file in  files:
+            try:
+                handle_file(args, file)
+            except TvrageError as e:
+                print "%s, continues" % (str(e))
+
+
+def find_files(f):
+    f = os.path.expanduser(f)
+    if os.path.isfile(f):
+        return [f]
+
+    ret = []
+    for root, dirs, files in os.walk(f):
+        for file in files:
+            ret.append(os.path.join(root, file))
+
+        for dir in dirs:
+            ret += find_files(os.path.join(root, dir))
+
+    return ret
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='TV-file renamer')
+    parser.add_argument('files', metavar='file', type=str, nargs='+', help="one or more directories or files")
+    parser.add_argument('-d', '--destination', type=str, help='destination directory', required=True)
+    parser.add_argument('-f', '--format', type=str, help='the new format of the file', required=True)
+    parser.add_argument('-s', '--silent', help='silent output', action='store_false')
+    parser.add_argument('-n', '--no-action', help="don't move any files", action='store_true')
+
+    args = parser.parse_args()
+
+    VERBOSE = args.silent
+
+    try:
+        run(args)
+    except KeyboardInterrupt:
+        print "Interrupted, exiting..."
