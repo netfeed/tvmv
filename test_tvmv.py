@@ -1,7 +1,6 @@
 import imp
 import os
 import os.path
-import shutil
 import unittest
 
 tvmv = imp.load_source('tvmv', 'tvmv')
