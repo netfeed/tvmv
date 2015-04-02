@@ -31,6 +31,7 @@ tvmv will try to take as much information as possible from the file path, but th
 
 * use more information from tvrage and cache that for fewer requests (for example nextepisode)
 * user-agent for tvrage requests
+* better error handling
 
 ## License
 
