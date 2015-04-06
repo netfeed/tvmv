@@ -234,7 +234,6 @@ def move(old, new, no_action=False):
 
 def handle_file(args, f):
     if not os.path.isfile(f):
-        print "bapp"
         return
 
     mime = mimetypes.guess_type(f)
