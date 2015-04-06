@@ -211,7 +211,7 @@ def parse_name(path):
         items = re.split(regex, path)
         if len(items) > 1 and len(items[0]) > 0:
             name = items[0]
-            for item in ['-', '.', '_']:
+            for item in ['-', '.', '_', '+']:
                 name = name.replace(item, ' ')
 
             return name.strip()
