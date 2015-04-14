@@ -2,6 +2,8 @@
 
 tvmv is a tool for renaming TV-files into another scheme. For example to fit with the naming structur of [Plex](https://support.plex.tv/hc/en-us/articles/200220687-Naming-Series-Season-Based-TV-Shows). tvmv is not opinionated and you should be able to rename the file to pretty much whatever you want.
 
+The goal is to make tvmv a drop in program, you should only need python2.7 or python3 and be good to go. No external requirements.
+
 ## Format
 
 The -f/--format flag can use these arguments:
