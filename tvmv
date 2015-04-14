@@ -43,7 +43,7 @@ except ImportError:
     from urllib.request import urlopen
     from urllib.error import HTTPError
 
-SEASON_RE1 = re.compile("s(\d{2})e(\d{2})", re.IGNORECASE)
+SEASON_RE1 = re.compile("s?(\d{2})e(\d{2})", re.IGNORECASE)
 SEASON_RE2 = re.compile("[\s\.-](\d{1,2})(\d{2})")
 SEASON_RE3 = re.compile("[\s\.-]?(\d{1,2})x(\d{2})")
 

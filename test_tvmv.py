@@ -21,6 +21,11 @@ class TestSeasonParsing(unittest.TestCase):
         self.assertEqual('01', result.group(1))
         self.assertEqual('08', result.group(2))
 
+    def test_07e09(self):
+        result = tvmv.parse_season("Cutthroat+Kitchen+07e09+hdtv+x264")
+        self.assertEqual('07', result.group(1))
+        self.assertEqual('09', result.group(2))
+
     def test_s11e23(self):
         result = tvmv.parse_season("American.Dad.S11E23.HDTV.x264")
         self.assertEqual('11', result.group(1))
