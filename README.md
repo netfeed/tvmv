@@ -36,6 +36,9 @@ The file ending will be added to the renamed file when the file is moved into a 
 * use more information from tvrage and cache that for fewer requests (for example nextepisode)
 * user-agent for tvrage requests
 * better error handling
+* double episodes (s01e23e24 and so on)
+* daily episodes (with dates in them)
+* subs
 
 ## License
 
