@@ -277,7 +277,7 @@ def handle_file(args, f):
 
 def run(args):
     for dir in args.files:
-        files = set(find_files(dir))
+        files = find_files(dir)
         for file in  files:
             try:
                 handle_file(args, file)
@@ -298,7 +298,7 @@ def find_files(f):
         for dir in dirs:
             ret += find_files(os.path.join(root, dir))
 
-    return ret
+    return set(ret)
 
 if __name__ == '__main__':
     import argparse
