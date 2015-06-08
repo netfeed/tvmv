@@ -237,7 +237,10 @@ def move(old, new, no_action=False):
         # would this contain permission errors too?
         debug('... directory already exists')
 
-    shutil.move(old, new)
+    try:
+        shutil.move(old, new)
+    except IOError as e:
+        debug('... failed to move file, %s' % (e))
 
 def handle_file(args, f):
     if not os.path.isfile(f):
