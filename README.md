@@ -39,6 +39,7 @@ The file ending will be added to the renamed file when the file is moved into a 
 * double episodes (s01e23e24 and so on)
 * daily episodes (with dates in them)
 * subs
+* don't create new directories if there already is one for that show
 
 ## License
 
