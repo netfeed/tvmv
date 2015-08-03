@@ -188,7 +188,7 @@ class Show(object):
         return form
 
 
-def parse_path(path):
+def parse_path(search_dir, path):
     d = os.path.dirname(path)
     d = os.path.basename(d)
     f, ext = os.path.splitext(os.path.basename(path))
@@ -201,6 +201,14 @@ def parse_path(path):
 
     season = file_season if file_season else dir_season
     name = file_name if file_name else dir_name
+    if not name:
+        name = os.path.dirname(os.path.dirname(path))
+        debug("... Couldn't find name, trying one step above")
+        if name == search_dir:
+            debug("... .. [Entrance: %s] and [Show: %s] is the same, exiting" % (search_dir, name))
+            return None
+        name = clean_name(os.path.basename(name))
+        debug("... .. found %s" % (name))
 
     episode = Episode(season.group(1), season.group(2), ext)
     show = Show(name, episode=episode)
@@ -218,13 +226,16 @@ def parse_name(path):
     for regex in [SEASON_RE1, SEASON_RE2, SEASON_RE3, SEASON_RE4]:
         items = re.split(regex, path)
         if len(items) > 1 and len(items[0]) > 0:
-            name = items[0]
-            for item in ['-', '.', '_', '+']:
-                name = name.replace(item, ' ')
-
-            return name.strip()
+            return clean_name(items[0])
 
     return None
+
+def clean_name(name):
+    for item in ['-', '.', '_', '+']:
+        name = name.replace(item, ' ')
+
+    return name.strip()
+
 
 def move(old, new, no_action=False):
     if no_action:
@@ -243,7 +254,7 @@ def move(old, new, no_action=False):
     except IOError as e:
         debug('... failed to move file, %s' % (e))
 
-def handle_file(args, f):
+def handle_file(args, search_dir, f):
     if not os.path.isfile(f):
         return
 
@@ -256,7 +267,10 @@ def handle_file(args, f):
 
     debug("File: " + f)
 
-    show = parse_path(f)
+    show = parse_path(search_dir, f)
+    if show is None:
+        debug("... didn't find a show, skiping")
+        return
 
     formated = show.format(args.format)
     if not formated:
@@ -281,7 +295,7 @@ def run(args):
         files = find_files(dir)
         for file in  files:
             try:
-                handle_file(args, file)
+                handle_file(args, dir, file)
             except TvrageError as e:
                 print("%s, continues" % (str(e)))
 

@@ -4,6 +4,7 @@ import os.path
 import unittest
 
 tvmv = imp.load_source('tvmv', 'tvmv')
+tvmv.VERBOSE = False
 
 episodes = [
     "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4",
@@ -92,107 +93,116 @@ class TestNameParsing(unittest.TestCase):
 
 class TestTvParsing(unittest.TestCase):
     def test_name_single_number_season(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         check = tvmv.Show('American Dad', episode=tvmv.Episode(1, 8, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_name_single_number_season_x(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 1x08.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 1x08.mp4")
         check = tvmv.Show('American Dad', episode=tvmv.Episode(1, 8, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_check_dir(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E07.HDTV.x264/107.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E07.HDTV.x264/107.mp4")
         check = tvmv.Show('American Dad', episode=tvmv.Episode(1, 7, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_check_dir_no_files(self):
-        parsed = tvmv.parse_path("American.Dad.S01E07.HDTV.x264/107.mp4")
+        parsed = tvmv.parse_path('files', "American.Dad.S01E07.HDTV.x264/107.mp4")
         check = tvmv.Show('American Dad', episode=tvmv.Episode(1, 7, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_name_double_digit_season(self):
-        parsed = tvmv.parse_path("files/American.Dad.S11E08.HDTV.x264/American Dad - 1108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S11E08.HDTV.x264/American Dad - 1108.mp4")
         check = tvmv.Show('American Dad', episode=tvmv.Episode(11, 8, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_am_good_filename(self):
-        parsed = tvmv.parse_path("files/American.Dad.S11E09.HDTV.x264/American.Dad.S11E09.HDTV.x264.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S11E09.HDTV.x264/American.Dad.S11E09.HDTV.x264.mp4")
         check = tvmv.Show('American Dad', episode=tvmv.Episode(11, 9, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_bb_good_filename(self):
-        parsed = tvmv.parse_path("files/Bobs.Burgers.S05E15.HDTV.x264.mp4")
+        parsed = tvmv.parse_path('files', "files/Bobs.Burgers.S05E15.HDTV.x264.mp4")
         check = tvmv.Show('Bobs Burgers', episode=tvmv.Episode(5, 15, '.mp4'))
         self.assertEqual(check, parsed)
 
     def test_spaced_name(self):
-        parsed = tvmv.parse_path("files/It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
+        parsed = tvmv.parse_path('files', "files/It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
         check = tvmv.Show("It's Always Sunny in Philadelphia", episode=tvmv.Episode(10, 10, '.mkv'))
         self.assertEqual(check, parsed)
 
     def test_spaced_name_no_files(self):
-        parsed = tvmv.parse_path("It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
+        parsed = tvmv.parse_path('files', "It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
         check = tvmv.Show("It's Always Sunny in Philadelphia", episode=tvmv.Episode(10, 10, '.mkv'))
         self.assertEqual(check, parsed)
 
+    def test_one_up(self):
+        parsed = tvmv.parse_path('files', "It's Always Sunny In Philadelphia/Season 3/309 - Sweet Dee's Dating A Retarted Person.avi")
+        check = tvmv.Show("It's Always Sunny In Philadelphia", episode=tvmv.Episode(3, 9, '.avi'))
+        self.assertEqual(check, parsed)
+
+    def test_one_up_none(self):
+        parsed = tvmv.parse_path('files', "files/Season 3/309 - Sweet Dee's Dating A Retarted Person.avi")
+        self.assertEqual(None, parsed)
+
 class TestFormatFromPath(unittest.TestCase):
     def test_name(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{show}/{show}")
         self.assertEqual("American Dad/American Dad", result)
 
     def test_season(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{season}")
         self.assertEqual("1", result)
 
     def test_padded_season(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{season.pad(2)}")
         self.assertEqual("01", result)
 
     def test_episode(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{episode}")
         self.assertEqual("8", result)
 
     def test_padded_episode(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{episode.pad(2)}")
         self.assertEqual("08", result)
 
     def test_1x8_combo(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{season}x{episode}")
         self.assertEqual("1x8", result)
 
     def test_padded_combo(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("s{season.pad(2)}e{episode.pad(2)}")
         self.assertEqual("s01e08", result)
 
 class TestFormatTvRage(unittest.TestCase):
     def test_name(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{show}/{show}")
         self.assertEqual("American Dad!/American Dad!", result)
 
     def test_ad_title(self):
-        parsed = tvmv.parse_path("files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
+        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
         result = parsed.format("{episode_title}")
         self.assertEqual("Bullocks to Stan", result)
 
     def test_archer_title(self):
-        parsed = tvmv.parse_path("Archer.2009.S06E11.HDTV.x264")
+        parsed = tvmv.parse_path('files', "Archer.2009.S06E11.HDTV.x264")
         result = parsed.format("{episode_title}")
         self.assertEqual("Achub Y Morfilod", result)
 
     def test_sunny(self):
-        parsed = tvmv.parse_path("It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
+        parsed = tvmv.parse_path('files', "It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
 
     def test_final(self):
-        parsed = tvmv.parse_path("Archer.2009.S06E11.HDTV.x264")
+        parsed = tvmv.parse_path('files', "Archer.2009.S06E11.HDTV.x264")
         result = parsed.format("{show}/Season {season.pad(2)}/{show} - s{season.pad(2)}e{episode.pad(2)} - {episode_title}")
         self.assertEqual("Archer (2009)/Season 06/Archer (2009) - s06e11 - Achub Y Morfilod", result)
 
