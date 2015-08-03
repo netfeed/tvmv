@@ -60,6 +60,11 @@ class TestSeasonParsing(unittest.TestCase):
         result = tvmv.parse_season("American Dad HDTV x264")
         self.assertEqual(None, result)
 
+    def test_slash_season(self):
+        result = tvmv.parse_season("511 - Mac and Charlie Write a Movie.avi")
+        self.assertEqual('5', result.group(1))
+        self.assertEqual('11', result.group(2))
+
 class TestNameParsing(unittest.TestCase):
     def test_s01e08(self):
         result = tvmv.parse_name("American.Dad.S01E08.HDTV.x264")
