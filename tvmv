@@ -215,7 +215,7 @@ def parse_path(search_dir, path):
     return show
 
 def parse_season(path):
-    for regex in [SEASON_RE1, SEASON_RE2, SEASON_RE3, SEASON_RE4]:
+    for regex in [SEASON_RE1, SEASON_RE4, SEASON_RE2, SEASON_RE3]:
         result = re.search(regex, path)
         if result:
             return result
@@ -223,9 +223,9 @@ def parse_season(path):
     return None
 
 def parse_name(path):
-    for regex in [SEASON_RE1, SEASON_RE2, SEASON_RE3, SEASON_RE4]:
+    for regex in [SEASON_RE1, SEASON_RE4, SEASON_RE2, SEASON_RE3]:
         items = re.split(regex, path)
-        if len(items) > 1 and len(items[0]) > 0:
+        if len(items) > 1 and len(items[0]) > 0 and not clean_name(items[0]).isdigit():
             return clean_name(items[0])
 
     return None

@@ -66,6 +66,12 @@ class TestSeasonParsing(unittest.TestCase):
         self.assertEqual('5', result.group(1))
         self.assertEqual('11', result.group(2))
 
+    def test_number_in_ep(self):
+        result = tvmv.parse_season("205 - 100 Dollar Baby.avi")
+        self.assertEqual('2', result.group(1))
+        self.assertEqual('05', result.group(2))
+
+
 class TestNameParsing(unittest.TestCase):
     def test_s01e08(self):
         result = tvmv.parse_name("American.Dad.S01E08.HDTV.x264")
@@ -145,6 +151,11 @@ class TestTvParsing(unittest.TestCase):
     def test_one_up_none(self):
         parsed = tvmv.parse_path('files', "files/Season 3/309 - Sweet Dee's Dating A Retarted Person.avi")
         self.assertEqual(None, parsed)
+
+    def test_number_in_name(self):
+        parsed = tvmv.parse_path('files', "files/It's Always Sunny In Philadelphia/Season 2/205 - 100 Dollar Baby.avi")
+        check = tvmv.Show("It's Always Sunny In Philadelphia", episode=tvmv.Episode(2, 5, '.avi'))
+        self.assertEqual(check, parsed)
 
 class TestFormatFromPath(unittest.TestCase):
     def test_name(self):
