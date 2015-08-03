@@ -86,7 +86,7 @@ class Episode(object):
                 self.year == that.year and self.extension == that.extension
 
     def __str__(self):
-        return "Episode<%s - %s - %s>" % (self.name, self.year, self.episode_number())
+        return "Episode<%s - %s - %s>" % (self.title, self.year, self.episode_number())
 
     def episode_number(self):
         return "s%02de%02d" % (int(self.season), int(self.episode))
