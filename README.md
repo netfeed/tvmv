@@ -38,7 +38,7 @@ tvmv will try to take as much information as possible from the file path. The fi
 
 ## License
 
-    Copyright (c) 2015 Victor Bergöö
+    Copyright (c) 2016 Victor Bergöö
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
