@@ -41,8 +41,6 @@ SEASON_RE4 = re.compile("^(\d{1,2})(\d{2})")
 SEASON_PADDING_RE = re.compile("{season\.pad\((\d+)\)}")
 EPISODE_PADDING_RE = re.compile("{episode\.pad\((\d+)\)}")
 
-NAME_EQUALIZER_RE = re.compile("[^\w\s]")
-
 def debug(message):
     if VERBOSE:
         print(message)
