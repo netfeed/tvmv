@@ -20,11 +20,11 @@ season/episode can also be zero padded with:
 
 To use the arugments in a format string you'll need to embed them in a pair of {}
 
-    {show}/Season {season.pad(2)}/{show} - {season}x{episode} - {episode_title}
+    {show}/Season {season.pad(2)}/{show} - {season}x{episode}
 
 Which would result in something like:
 
-    A Show/Season 01/A Show - 1x3 - The fancy episode
+    A Show/Season 01/A Show - 1x3
 
 tvmv will try to take as much information as possible from the file path. The file ending will be added to the renamed file when the file is moved into a the new location, so it won't need to be taken in account here.
 
