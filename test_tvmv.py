@@ -6,16 +6,6 @@ import unittest
 tvmv = imp.load_source('tvmv', 'tvmv')
 tvmv.VERBOSE = False
 
-episodes = [
-    "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4",
-    "files/American.Dad.S01E08.HDTV.x264/American Dad - 1x08.mp4",
-    "files/American.Dad.S01E07.HDTV.x264/107.mp4",
-    "files/American.Dad.S11E08.HDTV.x264/American Dad - 1108.mp4",
-    "files/American.Dad.S11E09.HDTV.x264/American.Dad.S11E09.HDTV.x264.mp4",
-    "files/Bobs.Burgers.S05E15.HDTV.x264.mp4",
-    "files/It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv",
-]
-
 class TestSeasonParsing(unittest.TestCase):
     def test_s01e08(self):
         result = tvmv.parse_season("American.Dad.S01E08.HDTV.x264")
