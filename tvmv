@@ -46,20 +46,17 @@ def debug(message):
         print(message)
 
 class Episode(object):
-    def __init__(self, season, episode, extension, title=None, year=None):
-        self.title = title
-        self.year = int(year) if year else None
+    def __init__(self, season, episode, extension):
         self.extension = extension
 
         self.season = self._fix_int(season)
         self.episode = self._fix_int(episode)
 
     def __eq__(self, that):
-        return self.title == that.title and self.episode_number() == that.episode_number() and \
-                self.year == that.year and self.extension == that.extension
+        return self.episode_number() == that.episode_number() and self.extension == that.extension
 
     def __str__(self):
-        return "Episode<%s - %s - %s>" % (self.title, self.year, self.episode_number())
+        return "Episode<%s - %s>" % (self.title, self.episode_number())
 
     def episode_number(self):
         return "s%02de%02d" % (int(self.season), int(self.episode))
@@ -73,16 +70,15 @@ class Episode(object):
 
 
 class Show(object):
-    def __init__(self, name, year=None, episode=None):
+    def __init__(self, name, episode=None):
         self.name = name
-        self.year = int(year) if year else None
         self.episode = episode
 
     def __eq__(self, that):
-        return self.name == that.name and self.year == that.year and self.episode == that.episode
+        return self.name == that.name and self.episode == that.episode
 
     def __str__(self):
-        return "Show<%s - %s - %s>" % (self.name, self.year, self.episode)
+        return "Show<%s - %s>" % (self.name, self.episode)
 
     def clean_name(self):
         name = self.name
