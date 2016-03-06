@@ -33,16 +33,6 @@ import shutil
 import socket
 import sys
 
-import xml.etree.ElementTree as ET
-
-try:
-    from urllib import urlencode
-    from urllib2 import urlopen, HTTPError
-except ImportError:
-    from urllib.parse import urlencode
-    from urllib.request import urlopen
-    from urllib.error import HTTPError
-
 SEASON_RE1 = re.compile("s?(\d{2})e(\d{2})", re.IGNORECASE)
 SEASON_RE2 = re.compile("[\s\.-](\d{1,2})(\d{2})")
 SEASON_RE3 = re.compile("[\s\.-]?(\d{1,2})x(\d{2})")
@@ -53,24 +43,9 @@ EPISODE_PADDING_RE = re.compile("{episode\.pad\((\d+)\)}")
 
 NAME_EQUALIZER_RE = re.compile("[^\w\s]")
 
-TVRAGE = {}
-
-VERBOSE = True
-
-class TvrageError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
-
 def debug(message):
     if VERBOSE:
         print(message)
-
-class TvRage(object):
-    def __init__(self, name, showid):
-        self.name = name
-        self.showid = showid
 
 class Episode(object):
     def __init__(self, season, episode, extension, title=None, year=None):
@@ -117,63 +92,12 @@ class Show(object):
             name = name.replace(item, '')
         return name
 
-    def fetch_episode_meta(self):
-        showid = self._fetch_show()
-        url = "http://services.tvrage.com/feeds/episodeinfo.php?" + urlencode(dict(sid = showid, ep = self.format("{season}x{episode}", True)))
-        xml = self._fetch_xml(url)
-
-        titles = xml.findall(".//episode/title")
-        if titles:
-            self.episode.title = titles[0].text
-
-    def _fetch_show(self):
-        if self.name in TVRAGE:
-            return TVRAGE[self.name].showid
-
-        url = "http://services.tvrage.com/feeds/search.php?" + urlencode(dict(show = self.name.lower()))
-        xml = self._fetch_xml(url)
-
-        shows = xml.findall('show')
-        for show in shows:
-            name = show.findall(".//name")[0].text
-            check = re.sub(NAME_EQUALIZER_RE, "", name)
-            if self.clean_name().lower() == check.lower():
-                TVRAGE[self.name] = TvRage(name, show.findall(".//showid")[0].text)
-                return TVRAGE[self.name].showid
-
-        return None
-
-    def _fetch_xml(self, url):
-        try:
-            req = urlopen(url)
-            return ET.fromstring(req.read())
-        except HTTPError as e:
-            raise TvrageError(e)
-        except socket.error as e:
-            raise TvrageError(e)
-
-        return None
-
-
     def format(self, form, inner=False):
-        if "{episode_title}" in form and not inner:
-            self.fetch_episode_meta()
-
-        name = self.name
-        if name in TVRAGE:
-            name = TVRAGE[name].name
-
-        form = form.replace("{show}", name)
+        form = form.replace("{show}", self.name)
 
         if self.episode:
             form = self._format_from_re(form, "{season}", SEASON_PADDING_RE, self.episode.season)
             form = self._format_from_re(form, "{episode}", EPISODE_PADDING_RE, self.episode.episode)
-
-            if "{episode_title}" in form:
-                if not self.episode.title:
-                    return None
-
-                form = form.replace("{episode_title}", self.episode.title)
 
         return form
 
@@ -294,10 +218,7 @@ def run(args):
     for dir in args.files:
         files = find_files(dir)
         for file in  files:
-            try:
-                handle_file(args, dir, file)
-            except TvrageError as e:
-                print("%s, continues" % (str(e)))
+            handle_file(args, dir, file)
 
 
 def find_files(f):

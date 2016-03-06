@@ -193,29 +193,5 @@ class TestFormatFromPath(unittest.TestCase):
         result = parsed.format("s{season.pad(2)}e{episode.pad(2)}")
         self.assertEqual("s01e08", result)
 
-class TestFormatTvRage(unittest.TestCase):
-    def test_name(self):
-        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
-        result = parsed.format("{show}/{show}")
-        self.assertEqual("American Dad!/American Dad!", result)
-
-    def test_ad_title(self):
-        parsed = tvmv.parse_path('files', "files/American.Dad.S01E08.HDTV.x264/American Dad - 108.mp4")
-        result = parsed.format("{episode_title}")
-        self.assertEqual("Bullocks to Stan", result)
-
-    def test_archer_title(self):
-        parsed = tvmv.parse_path('files', "Archer.2009.S06E11.HDTV.x264")
-        result = parsed.format("{episode_title}")
-        self.assertEqual("Achub Y Morfilod", result)
-
-    def test_sunny(self):
-        parsed = tvmv.parse_path('files', "It's Always Sunny in Philadelphia S10E10 (1920x1080).mkv")
-
-    def test_final(self):
-        parsed = tvmv.parse_path('files', "Archer.2009.S06E11.HDTV.x264")
-        result = parsed.format("{show}/Season {season.pad(2)}/{show} - s{season.pad(2)}e{episode.pad(2)} - {episode_title}")
-        self.assertEqual("Archer (2009)/Season 06/Archer (2009) - s06e11 - Achub Y Morfilod", result)
-
 if __name__ == '__main__':
     unittest.main()

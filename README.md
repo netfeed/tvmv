@@ -11,7 +11,6 @@ The -f/--format flag can use these arguments:
 * show 
 * season 
 * episode
-* episode_title
 
 More can be added if needed.
 
@@ -27,14 +26,10 @@ Which would result in something like:
 
     A Show/Season 01/A Show - 1x3 - The fancy episode
 
-tvmv will try to take as much information as possible from the file path, but there's a special case when episode_title is used. From that point we will try to get information from [tvrage](http://services.tvrage.com/). If we succeed, then we'll use the episode title *and* the show title from the information we get. So "Bobs Burgers", would become "Bob's Burgers".
-
-The file ending will be added to the renamed file when the file is moved into a the new location, so it won't need to be taken in account here.
+tvmv will try to take as much information as possible from the file path. The file ending will be added to the renamed file when the file is moved into a the new location, so it won't need to be taken in account here.
 
 ## Todo
 
-* use more information from tvrage and cache that for fewer requests (for example nextepisode)
-* user-agent for tvrage requests
 * better error handling
 * double episodes (s01e23e24 and so on)
 * daily episodes (with dates in them)
